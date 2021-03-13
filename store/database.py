@@ -1,26 +1,74 @@
-import mysql.connector
+import os
+from dotenv import load_dotenv
+from sqlalchemy import Table, Column, Integer, String, ForeignKey, create_engine
+from sqlalchemy.orm import relationship, sessionmaker
+from sqlalchemy.ext.declarative import declarative_base
 
-def validateRecord(request):  # request:dict -> str|None
-    text = request["text"]
-    if type(text) != str:
-        return 'The value for "text" must be of type string'
-    if not text:
-        return 'The value for "text" must not be an empty string'
-    
-    categories = request["categories"]
-    if type(categories) != list:
-        return 'The value for "categories" must be an array'
-    for i in categories:
-        if not _categoryExist(i):
-            return i + 'is invalid as a value for the "categories" array'
 
-    return None
+load_dotenv()
 
-def _categoryExist(category):   # category:int|str -> bool
-    if type(category) == str:
 
-def saveRecord(request):
+# Schema
+Base = declarative_base()
 
-def idCheck(id):
+association_table = Table('recordtocategory', Base.metadata,
+    Column('record_id', Integer, ForeignKey('record.id')),
+    Column('category_id', Integer, ForeignKey('category.id'))
+)
 
-def deleteRecord(id):
+class Record(Base):
+    __tablename__ = 'record'
+    id = Column(Integer, primary_key=True)
+    text = Column(String(length=4095))
+    categories = relationship("Category",
+                    secondary=association_table)
+
+class Category(Base):
+    __tablename__ = 'category'
+    id = Column(Integer, primary_key=True)
+    name = Column(String(length=127), unique=True)
+
+
+# Database Engine Wrapper
+class Database:
+    def __init__(self):
+        print(os.getenv("DATABASE_URL"))
+        self.engine = create_engine(os.getenv("DATABASE_URL"))
+        self.Session = sessionmaker(bind=self.engine)
+
+    def createDB(self):
+        Base.metadata.create_all(self.engine)
+
+    def recordCreate(self, text, categories):   # text:str, categories:[int|str] -> str|None
+        session = self.Session()
+        categories = map(self.toCategoryId, categories)
+        newRecord = Record(text=text)
+        for c in categories:
+            category = session.query(Category).filter(Category.id == self.toCategoryId(c)).first()
+            newRecord.categories.append(category)
+        session.add(newRecord)
+        session.commit()
+
+    # def recordDelete(self, id):   # id: int ->
+
+    # def recordExist(self, id):   # id: int -> bool
+
+    # def getAllRecord(self):   # -> [dict]
+
+    def categoryCreate(self, name):  # name: str -> str|None
+        session = self.Session()
+        newCategory = Category(name=name)
+        session.add(newCategory)
+        session.commit()
+
+    # def categoryDelete(self, category):  # category: str|int -> str|None
+    #     category = toCategoryId(category)
+
+    # def categoryExist(self, category):  # category: str|int -> bool
+    #     category = toCategoryId(category)
+
+    def toCategoryId(self, category):  # category: str|int -> int
+        if type(category) == str:
+            session = self.Session()
+            category = session.query(Category.id).filter(Category.name == category).first()[0]
+        return category
