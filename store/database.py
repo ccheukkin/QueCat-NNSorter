@@ -38,22 +38,23 @@ class Database:
     def createDB(self):
         Base.metadata.create_all(self.engine)
 
-    def recordCreate(self, text, categories):   # text:str, categories:[int|str] -> str|None
+    def recordsCreate(self, records):   # records:[dict] ->
         session = self.Session()
-        newRecord = Record(text=text)
-        for c in categories:
-            category = session.query(Category).filter(Category.id == self.toCategoryId(c)).first()
-            newRecord.categories.append(category)
-        session.add(newRecord)
+        for r in records:
+            newRecord = Record(text=r.text)
+            for c in r.categories:
+                category = session.query(Category).filter(Category.id == self.toCategoryId(c)).first()
+                newRecord.categories.append(category)
+            session.add(newRecord)
         session.commit()
 
-    # def recordDelete(self, id):   # id: int ->
+    # def recordsDelete(self, id):   # id: int ->
 
     # def recordExist(self, id):   # id: int -> bool
 
     # def recordGetAll(self):   # -> [dict]
 
-    def categoryCreate(self, name):  # name: str -> str|None
+    def categoryCreate(self, name):  # name: str ->
         session = self.Session()
         newCategory = Category(name=name)
         session.add(newCategory)

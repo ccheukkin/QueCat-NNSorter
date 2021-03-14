@@ -1,25 +1,32 @@
-def validateText(req):  # req:dict -> str|None
-    text = req["text"]
+def validateText(json):  # json:dict -> str|None
+    text = json["text"]
     if type(text) != str:
-        return 'The value for "text" must be of type string'
+        return f'The value for "text" must be of type string. However, {text} is received instead.'
     if not text:
-        return 'The value for "text" must not be an empty string'
+        return f'The value for "text" must not be an empty string. However, {text} is received instead.'
     return None
 
 
-def validateCategories(req, database):  # req:dict, database: Database -> str|None
-    categories = req["categories"]
+def validateCategories(json, database):  # json:dict, database: Database -> str|None
+    categories = json["categories"]
     if type(categories) != list:
-        return 'The value for "categories" must be an array'
+        return f'The value for "categories" must be an array. However, {categories} is received instead.'
     for i in categories:
         if not database.categoryExist(i):
-            return i + 'is invalid as a value for the "categories" array'
+            return f'{i} is invalid as a value for the "categories" array.'
     return None
 
 
-def validateRecord(req, database):  # req: dict, database: Database -> str|None
-    textCheck = validateText(req)
+def validateRecord(json, database):  # json: dict, database: Database -> str|None
+    textCheck = validateText(json)
     if textCheck == None:
-        return validateCategories(req, database)
+        return validateCategories(json, database)
     else:
         return textCheck
+
+def validateRecords(req, database):
+    for json in req:
+        v = validateRecord(json, database)
+        if v != None:
+            return v
+    return None

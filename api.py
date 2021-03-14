@@ -10,9 +10,9 @@ database = Database()
 
 
 @app.route("/add", methods=["POST"])
-def addRecord():
-    json = request.get_json()
-    error = validation.validateRecord(json, database)
+def addRecords():
+    req = request.get_json()
+    error = validation.validateRecords(req, database)
 
     if error != None:
         return {
@@ -20,7 +20,7 @@ def addRecord():
             "message": error
         }
 
-    id = database.createRecord(json["text"], json["categories"])
+    id = database.recordsCreate(req)
     return {
         "status_code": 201,
         "id": id
