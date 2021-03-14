@@ -1,12 +1,21 @@
 from flask import request, Flask, jsonify
 from store.database import Database
 import store.validation as validation
-import inference.inference as inference
+import yaml
+from pathlib import Path
+import nn.inference
 
 
 app = Flask(__name__)
 # app.config["DEBUG"] = True
 database = Database()
+model = None
+path = Path(__file__).parent / "./inference-config.yml"
+with open(path) as file:
+    yml = yaml.load(file, Loader=yaml.FullLoader)
+    assert "modelPath" in yml.keys(), 'The key "modelPath" is not defined in the inference-config.yml file'
+    modelPath = yml["modelPath"]
+    model = nn.inference.Categorizer(modelPath)
 
 
 @app.route("/add", methods=["POST"])
@@ -55,7 +64,7 @@ def infer():
             "message": error
         }
 
-    categories = inference.run(json["text"])
+    categories = model.run(json["text"])
     return {
         "status_code": 200,
         "categories": categories
