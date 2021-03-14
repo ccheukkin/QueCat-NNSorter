@@ -38,21 +38,33 @@ class Database:
     def createDB(self):
         Base.metadata.create_all(self.engine)
 
-    def recordsCreate(self, records):   # records:[dict] ->
+    def recordsCreate(self, records):   # records:[dict] -> [int]
         session = self.Session()
+        ids = []
         for r in records:
-            newRecord = Record(text=r.text)
-            for c in r.categories:
+            newRecord = Record(text=r["text"])
+            for c in r["categories"]:
                 category = session.query(Category).filter(Category.id == self.toCategoryId(c)).first()
                 newRecord.categories.append(category)
             session.add(newRecord)
+            session.flush()
+            ids.append(newRecord.id)
+        session.commit()
+        return ids
+
+    def recordsDelete(self, ids):   # ids: [int] ->
+        session = self.Session()
+        for id in ids:
+            delete_relations = association_table.delete().where(association_table.c.record_id == id)
+            session.execute(delete_relations)
+            record = session.query(Record).filter(Record.id == id).first()
+            session.delete(record)
         session.commit()
 
-    # def recordsDelete(self, id):   # id: int ->
-
-    # def recordExist(self, id):   # id: int -> bool
-
-    # def recordGetAll(self):   # -> [dict]
+    def recordGetAll(self):   # -> [Record]
+        session = self.Session()
+        records = session.query(Record).all()
+        return records
 
     def categoryCreate(self, name):  # name: str ->
         session = self.Session()
@@ -60,16 +72,15 @@ class Database:
         session.add(newCategory)
         session.commit()
 
-    # def categoryDelete(self, category):  # category: str|int -> str|None
-    #     category = toCategoryId(category)
-
-    def categoryExist(self, category):  # category: str|int -> bool
+    def categoryDelete(self, category):  # category: str|int -> str|None
         session = self.Session()
-        if type(category) == str: 
-            category = session.query(Category).filter(Category.name == category).first()
-        else:
-            category = session.query(Category).filter(Category.id == category).first()
-        return category != None
+        category = self.toCategoryId(category)
+        records = session.query(association_table).filter(association_table.c.category_id == category).all()
+        recordIds = list(map(lambda x: x.id, records))
+        self.recordsDelete(recordIds)
+        category = session.query(Category).filter(Category.id == category).first()
+        session.delete(category)
+        session.commit()
 
     def toCategoryId(self, category):  # category: str|int -> int
         if type(category) == str:
@@ -77,12 +88,12 @@ class Database:
             category = session.query(Category.id).filter(Category.name == category).first()[0]
         return category
 
-    def categoryGetAll(self):
+    def categoryGetAll(self):   # -> [Category]
         session = self.Session()
         categories = session.query(Category).all()
         return categories
 
-    def categoryInUse(self, category):
+    def categoryInUse(self, category):   # str|int -> bool
         session = self.Session()
         category = self.toCategoryId(category)
         record = session.query(association_table).filter(association_table.c.category_id == category).first()

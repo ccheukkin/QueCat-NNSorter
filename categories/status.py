@@ -3,11 +3,13 @@ from pathlib import Path
 from colorama import init
 import store.database
 
+
 init()
 ADD = '\033[32m'
 NORMAL = '\033[90m'
 REMOVE = '\033[31m'
 END = '\033[0m'
+
 
 path = Path(__file__).parent / "./categories.yml"
 with open(path) as file:

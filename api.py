@@ -11,8 +11,8 @@ database = Database()
 
 @app.route("/add", methods=["POST"])
 def addRecords():
-    req = request.get_json()
-    error = validation.validateRecords(req, database)
+    json = request.get_json()
+    error = validation.validateRecords(json, database)
 
     if error != None:
         return {
@@ -20,7 +20,7 @@ def addRecords():
             "message": error
         }
 
-    id = database.recordsCreate(req)
+    id = database.recordsCreate(json["records"])
     return {
         "status_code": 201,
         "id": id
@@ -29,8 +29,8 @@ def addRecords():
 
 @app.route("/delete", methods=["POST"])
 def deleteRecord():
-    id = request.args.get("id")
-    error = database.recordExist(id)
+    json = request.get_json()
+    error = validation.validateRecordIds(json, database)
 
     if error != None:
         return {
@@ -38,7 +38,7 @@ def deleteRecord():
             "message": error
         }
 
-    database.deleteRecord(id)
+    database.recordsDelete(json["ids"])
     return {
         "status_code": 202
     }
