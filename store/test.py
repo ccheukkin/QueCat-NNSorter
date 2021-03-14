@@ -1,8 +1,9 @@
-import database
+import store.database
 
-db = database.Database()
+db = store.database.Database()
 
 # db.createDB()
-# db.categoryCreate("Hello")
-db.recordCreate("This is a question", ["Hello"])
+# db.categoryCreate("Bye")
+# db.recordCreate("This is a question", ["Hello"])
 # print(db.toCategoryId("Hello"))
+print(db.categoryInUse("Hello"))

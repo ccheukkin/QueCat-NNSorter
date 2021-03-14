@@ -32,7 +32,6 @@ class Category(Base):
 # Database Engine Wrapper
 class Database:
     def __init__(self):
-        print(os.getenv("DATABASE_URL"))
         self.engine = create_engine(os.getenv("DATABASE_URL"))
         self.Session = sessionmaker(bind=self.engine)
 
@@ -41,7 +40,6 @@ class Database:
 
     def recordCreate(self, text, categories):   # text:str, categories:[int|str] -> str|None
         session = self.Session()
-        categories = map(self.toCategoryId, categories)
         newRecord = Record(text=text)
         for c in categories:
             category = session.query(Category).filter(Category.id == self.toCategoryId(c)).first()
@@ -53,7 +51,7 @@ class Database:
 
     # def recordExist(self, id):   # id: int -> bool
 
-    # def getAllRecord(self):   # -> [dict]
+    # def recordGetAll(self):   # -> [dict]
 
     def categoryCreate(self, name):  # name: str -> str|None
         session = self.Session()
@@ -64,11 +62,27 @@ class Database:
     # def categoryDelete(self, category):  # category: str|int -> str|None
     #     category = toCategoryId(category)
 
-    # def categoryExist(self, category):  # category: str|int -> bool
-    #     category = toCategoryId(category)
+    def categoryExist(self, category):  # category: str|int -> bool
+        session = self.Session()
+        if type(category) == str: 
+            category = session.query(Category).filter(Category.name == category).first()
+        else:
+            category = session.query(Category).filter(Category.id == category).first()
+        return category != None
 
     def toCategoryId(self, category):  # category: str|int -> int
         if type(category) == str:
             session = self.Session()
             category = session.query(Category.id).filter(Category.name == category).first()[0]
         return category
+
+    def categoryGetAll(self):
+        session = self.Session()
+        categories = session.query(Category).all()
+        return categories
+
+    def categoryInUse(self, category):
+        session = self.Session()
+        category = self.toCategoryId(category)
+        record = session.query(association_table).filter(association_table.c.category_id == category).first()
+        return record != None
