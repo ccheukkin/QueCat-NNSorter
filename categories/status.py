@@ -20,17 +20,20 @@ with open(path) as file:
     db = store.database.Database()
     catInDB = list(map(lambda x: x.name, db.categoryGetAll()))
 
-    print("The following categories will be added to or are already in the database:")
+    categories = [] if categories == None else categories
+    if len(categories) != 0:
+        print("The following categories will be added to or are already in the database:")
     for c in categories:
         addTag = NORMAL+" " if c in catInDB else ADD+"+"
         print(f"{addTag} {c}{END}")
-    
-    print("The following categories will be deleted from the database:")
+        
+    haveDeletion = False
     for c in catInDB:
         if not(c in categories):
+            if not haveDeletion:
+                print("The following categories will be deleted from the database:")
+                haveDeletion = True
             inUseTag = "*" if db.categoryInUse(c) else " "
             print(f"{inUseTag} {REMOVE}{c}{END}")
-    print("Note that the * means that the category is in use by some record in the database")
-        
-
-
+    if haveDeletion:
+        print("Note that the * means that the category is in use by some record in the database")

@@ -75,8 +75,8 @@ class Database:
     def categoryDelete(self, category):  # category: str|int -> str|None
         session = self.Session()
         category = self.toCategoryId(category)
-        records = session.query(association_table).filter(association_table.c.category_id == category).all()
-        recordIds = list(map(lambda x: x.id, records))
+        relations = session.query(association_table.c.record_id).filter(association_table.c.category_id == category).all()
+        recordIds = list(map(lambda x: x[0], relations))
         self.recordsDelete(recordIds)
         category = session.query(Category).filter(Category.id == category).first()
         session.delete(category)
