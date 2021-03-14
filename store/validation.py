@@ -16,10 +16,12 @@ def validateCategories(json, database):  # json:dict, database: Database -> str|
     if type(categories) != list:
         return f'The value for "categories" must be an array. However, {categories} is received instead.'
 
-    allCat = list(map(lambda x: x.id, database.categoryGetAll()))
-    for i in categories:
-        if not (database.toCategoryId(i) in allCat):
-            return f'The category {i} does not exist'
+    allCat = database.categoryGetAll()
+    allCatName = list(map(lambda x: x.name, allCat))
+    allCatId = list(map(lambda x: x.id, allCat))
+    for c in categories:
+        if not (c in (allCatName if type(c) == str else allCatId)):
+            return f'The category {c} does not exist'
 
     return None
 

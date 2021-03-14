@@ -98,3 +98,16 @@ class Database:
         category = self.toCategoryId(category)
         record = session.query(association_table).filter(association_table.c.category_id == category).first()
         return record != None
+
+    def deleteEverything(self):
+        session = self.Session()
+        delete_relations = association_table.delete()
+        delete_records = Record.__table__.delete()
+        delete_categories = Category.__table__.delete()
+        session.execute(delete_relations)
+        session.execute(delete_records)
+        session.execute(delete_categories)
+        session.execute("ALTER TABLE record AUTO_INCREMENT = 1")    # MySQL Specific
+        session.execute("ALTER TABLE category AUTO_INCREMENT = 1")    # MySQL Specific
+        session.execute("ALTER TABLE recordtocategory AUTO_INCREMENT = 1")    # MySQL Specific
+        session.commit()

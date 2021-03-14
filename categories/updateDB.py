@@ -20,7 +20,7 @@ with open(path) as file:
     for c in catInDB:
         if not(c in categories):
             if db.categoryInUse(c):
-                confirm = input(f"{c} is in use by some records. Are you sure you want to delete it? Type 'y' to confirm\n")
+                confirm = input(f"{c} is in use by some records. Are you sure you want to delete it? Type 'y' to confirm. ")
                 if confirm != "y":
                     continue
             db.categoryDelete(c)
